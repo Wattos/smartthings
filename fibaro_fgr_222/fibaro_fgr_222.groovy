@@ -127,9 +127,9 @@ metadata {
                     case "enum":
                         input (
                         name: "configParam${it.id}",
-                        title: "#${it.id}: ${it.name}: \n" + it.description + lb + "Default Value: ${it.defaultValue}",
-                        type: it.type,
-                        options: it.options,
+                        title: "#${it.id}: ${it.name}: \n ${it.description} \n Default Value: " + it.values.findResult({ v-> v.value == it.defaultValue }).name,
+                        type: "enum",
+                        options: it.values.collect(it.name),
                         required: it.required
                         )
                         break
@@ -363,11 +363,23 @@ def sync() {
     def cmds = []
     sendEvent(name: "syncStatus", value: "syncing", isStateChange: true)
     getFibaroDeviceParameters().findAll( {!it.readonly} ).each {
-        // Exclude readonly parameters.
-        if (settings."configParam${it.id}" != null) {
-            cmds << zwave.configurationV1.configurationSet(parameterNumber: it.id, size: it.size, scaledConfigurationValue: settings."configParam${it.id}".toInteger()).format()
-            cmds << zwave.configurationV1.configurationGet(parameterNumber: it.id).format()
+        def value = null
+
+        if (it.type == "number") {
+            value = settings."configParam${it.id}".toInteger()
         }
+
+        if (it.type == "enum") {
+            value = it.values.findResult( { v -> v.name == settings."configParam${it.id}" }).value
+        }
+
+        if (value == null) {
+            value = it.defaultValue
+        }
+
+        cmds << zwave.configurationV1.configurationSet(parameterNumber: it.id, size: it.size, scaledConfigurationValue: value).format()
+        cmds << zwave.configurationV1.configurationGet(parameterNumber: it.id).format()
+
     }
     log.debug("send cmds ${cmds}")
     runIn(0.5 * cmds.size(), setSynced)
@@ -385,11 +397,12 @@ private getFibaroDeviceParameters() {
             id:  3,
             name: "Reports type",
             description:
-            '''|0 – Blind position reports sent to the main controller using Z-Wave Command Class.
-               |1 - Blind position reports sent to the main controller using Fibar Command Class.
-               |Parameters value should be set to 1 if the module operates in Venetian Blind mode.'''.stripMargin(),
-            type: "number",
-            range: "0..1",
+            '''|Parameters value should be set to 1 if the module operates in Venetian Blind mode.'''.stripMargin(),
+            type: "enum",
+            values: [
+                [name: 'Blind position reports sent to the main controller using Z-Wave Command Class', value: 0],
+                [name: 'Blind position reports sent to the main controller using Fibar Command Class', value: 1]
+            ],
             defaultValue: 0,
             required: false,
             readonly: false,
@@ -398,14 +411,15 @@ private getFibaroDeviceParameters() {
         [
             id:  10,
             name: "Roller Shutter operating modes",
-            description:
-            '''|0 - Roller Blind Mode, without positioning
-               |1 - Roller Blind Mode, with positioning
-               |2 - Venetian Blind Mode, with positioning
-               |3 - Gate Mode, without positioning
-               |4 - Gate Mode, with positioning'''.stripMargin(),
-            type: "number",
-            range: "0..4",
+            description: '',
+            type: "enum",
+            values: [
+                [name: 'Roller Blind Mode, without positioning', value: 0],
+                [name: 'Roller Blind Mode, with positioning', value: 1],
+                [name: 'Venetian Blind Mode, with positioning', value: 2],
+                [name: 'Gate Mode, without positioning', value: 3],
+                [name: 'Gate Mode, with positioning', value: 4],
+            ],
             defaultValue: 0,
             required: false,
             readonly: false,
@@ -431,12 +445,13 @@ private getFibaroDeviceParameters() {
             id: 13,
             name: "Set slats back to previous position",
             description:
-            '''|In Venetian Blind Mode (parameter 10 set to 2) the parameter influences slats positioning in various situations. In any other operating mode the parameter value is irrelevant.
-               |0 - Slats return to previously set position only in case of the main controller operation
-               |1 - Slats return to previously set position in case of the main controller operation, momentary switch operation, or when the limit switch is reached.
-               |2 - Slats return to previously set position in case of the main controller operation, momentary switch operation, when the limit switch is reached or after receiving a “STOP” control frame (Switch Multilevel Stop).'''.stripMargin(),
-            type: "number",
-            range: "0..2",
+            '''|In Venetian Blind Mode (parameter 10 set to 2) the parameter influences slats positioning in various situations. In any other operating mode the parameter value is irrelevant.'''.stripMargin(),
+            type: "enum",
+            values: [
+                [name: 'Slats return to previously set position only in case of the main controller operation', value: 0],
+                [name: 'Slats return to previously set position in case of the main controller operation, momentary switch operation, or when the limit switch is reached', value: 1],
+                [name: 'Slats return to previously set position in case of the main controller operation, momentary switch operation, when the limit switch is reached or after receiving a “STOP” control frame (Switch Multilevel Stop)', value: 2],
+            ],
             defaultValue: 0,
             required: false,
             readonly: false,
@@ -446,12 +461,13 @@ private getFibaroDeviceParameters() {
             id: 14,
             name: "Switch type",
             description:
-            '''|The parameter settings are relevant for Roller Blind Mode and Venetian Blind Mode (parameter 10 set to 0, 1, 2).
-               |0 - Momentary switches
-               |1 - Toggle switches
-               |2 - Single, momentary switch. (The switch should be connected to S1 terminal)'''.stripMargin(),
-            type: "number",
-            range: "0..2",
+            '''|The parameter settings are relevant for Roller Blind Mode and Venetian Blind Mode (parameter 10 set to 0, 1, 2).'''.stripMargin(),
+            type: "enum",
+            values: [
+                [name: 'Momentary switches', value: 0],
+                [name: 'Toggle switches', value: 1],
+                [name: 'Single, momentary switch', value: 2],
+            ],
             defaultValue: 0,
             required: false,
             readonly: false,
@@ -506,12 +522,13 @@ private getFibaroDeviceParameters() {
         [
             id: 30,
             name: "Response to general alarm",
-            description:
-            '''|0 - No reaction.
-               |1 - Open blind.
-               |2 - Close blind.'''.stripMargin(),
-            type: "number",
-            range: "0..2",
+            description: '',
+            type: "enum",
+            values: [
+                [name: 'No reaction', value: 0],
+                [name: 'Open blind', value: 1],
+                [name: 'Close blind', value: 2],
+            ],
             defaultValue: 2,
             required: false,
             readonly: false,
@@ -520,12 +537,13 @@ private getFibaroDeviceParameters() {
         [
             id: 31,
             name: "Response to flooding alarm",
-            description:
-            '''|0 - No reaction.
-               |1 - Open blind.
-               |2 - Close blind.'''.stripMargin(),
-            type: "number",
-            range: "0..2",
+            description: '',
+            type: "enum",
+            values: [
+                [name: 'No reaction', value: 0],
+                [name: 'Open blind', value: 1],
+                [name: 'Close blind', value: 2],
+            ],
             defaultValue: 0,
             required: false,
             readonly: false,
@@ -534,12 +552,13 @@ private getFibaroDeviceParameters() {
         [
             id: 32,
             name: "Response to smoke, CO or CO2 alarm",
-            description:
-            '''|0 - No reaction.
-               |1 - Open blind.
-               |2 - Close blind.'''.stripMargin(),
-            type: "number",
-            range: "0..2",
+            description: '',
+            type: "enum",
+            values: [
+                [name: 'No reaction', value: 0],
+                [name: 'Open blind', value: 1],
+                [name: 'Close blind', value: 2],
+            ],
             defaultValue: 1,
             required: false,
             readonly: false,
@@ -548,12 +567,13 @@ private getFibaroDeviceParameters() {
         [
             id: 33,
             name: "Response to temperature alarm",
-            description:
-            '''|0 - No reaction.
-               |1 - Open blind.
-               |2 - Close blind.'''.stripMargin(),
-            type: "number",
-            range: "0..2",
+            description: '',
+            type: "enum",
+            values: [
+                [name: 'No reaction', value: 0],
+                [name: 'Open blind', value: 1],
+                [name: 'Close blind', value: 2],
+            ],
             defaultValue: 1,
             required: false,
             readonly: false,
@@ -562,11 +582,12 @@ private getFibaroDeviceParameters() {
         [
             id: 35,
             name: "Managing slats in response to alarm.",
-            description:
-            '''|0 - Do not change slats position - slats return to the last set position
-               |1 - Set slats to their extreme position'''.stripMargin(),
-            type: "number",
-            range: "0..2",
+            description: '',
+            type: "enum",
+            values: [
+                [name: 'Do not change slats position - slats return to the last set position', value: 0],
+                [name: 'Set slats to their extreme position', value: 1],
+            ],
             defaultValue: 1,
             required: false,
             readonly: false,
@@ -581,8 +602,8 @@ private getFibaroDeviceParameters() {
                |Power report threshold available settings: 1-100 (1-100%).
                |Value of 0 means the reports are turned off.'''.stripMargin(),
             type: "number",
-            range: "0..2",
-            defaultValue: 0,
+            range: "0..100",
+            defaultValue: 10,
             required: false,
             readonly: false,
             size:1,
@@ -619,15 +640,13 @@ private getFibaroDeviceParameters() {
         ],
         [
             id: 44,
-            name: "Energy reports",
-            description:
-            '''|The device may include power and energy used by itself in reports sent to the main controller.
-               |Available settings:
-               |0 – self-measurement inactive
-               |1 – self-measurement active
-               |Default setting: 0'''.stripMargin(),
-            type: "number",
-            range: "0..1",
+            name: "Self-measurement",
+            description: 'The device may include power and energy used by itself in reports sent to the main controller',
+            type: "enum",
+            values: [
+                [name: 'self-measurement inactive', value: 0],
+                [name: 'self-measurement active', value: 1],
+            ],
             defaultValue: 0,
             required: false,
             readonly: false,
