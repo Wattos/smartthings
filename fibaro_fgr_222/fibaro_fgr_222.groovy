@@ -108,7 +108,7 @@ metadata {
             "Refer to the product documentation for a full description of each parameter."
             )
 
-            getFibaroDeviceParameters().findAll( {!it.readonly} ).each {
+            getFibaroDeviceParameters().findAll( { !it.readonly } ).each {
                 // Exclude readonly parameters.
 
                 def lb = (it.description.length() > 0) ? "\n" : ""
@@ -383,190 +383,255 @@ private getFibaroDeviceParameters() {
     return [
         [
             id:  3,
-            size: 1,
+            name: "Reports type",
+            description:
+            '''|0 – Blind position reports sent to the main controller using Z-Wave Command Class.
+               |1 - Blind position reports sent to the main controller using Fibar Command Class.
+               |Parameters value should be set to 1 if the module operates in Venetian Blind mode.'''.stripMargin(),
             type: "number",
             range: "0..1",
             defaultValue: 0,
             required: false,
             readonly: false,
-            name: "Reports type",
-            description:
-            '''|0 – Blind position reports sent to the main controller using Z-Wave Command Class.
-               |1 - Blind position reports sent to the main controller using Fibar Command Class.
-               |Parameters value shoud be set to 1 if the module operates in Venetian Blind mode.'''.stripMargin()
+            size: 1,
         ],
         [
             id:  10,
-            size: 1,
-            type: "number",
-            range: "0..4",
-            defaultValue: 0,
-            required: false,
-            readonly: false,
             name: "Roller Shutter operating modes",
             description:
             '''|0 - Roller Blind Mode, without positioning
                |1 - Roller Blind Mode, with positioning
                |2 - Venetian Blind Mode, with positioning
                |3 - Gate Mode, without positioning
-               |4 - Gate Mode, with positioning'''.stripMargin()
-        ],
-        [
-            id: 12,
-            size:2,
+               |4 - Gate Mode, with positioning'''.stripMargin(),
             type: "number",
-            range: "0..65535",
+            range: "0..4",
             defaultValue: 0,
             required: false,
             readonly: false,
+            size: 1,
+        ],
+        [
+            id: 12,
             name: "Time of full turn of the slat",
             description:
             '''|In Venetian Blind mode (parameter 10 set to 2) the parameter determines time of full turn of the slats
                |In Gate Mode (parameter 10 set to 3 or 4) the parameter defines the COUNTDOWN time, i.e. the time period after which an open gate starts closing. In any other operating mode the parameter value is irrelevant.
                |Value of 0 means the gate will not close automatically
                |Available settings: 0-65535 (0 - 655,35s)
-               |Default setting: 150 (1,5 s)'''.stripMargin()
-        ],
-        [
-            id: 13,
-            size:1,
-            type: "number",
-            range: "0..2",
-            defaultValue: 0,
-            required: false,
-            readonly: false,
-            name: "Set slats back to previous position",
-            description:
-            '''|In Venetian Blind Mode (parameter 10 set to 2) the parameter influences slats positioning in various situations. In any other operating mode the parameter value is irrelevant.
-               |0 - Slats return to previously set position only in case of the main controller operation
-               |1 - Slats return to previously set position in case of the main controller operation, momentary switch operation, or when the limit switch is reached.
-               |2 - Slats return to previously set position in case of the main controller operation, momentary switch operation, when the limit switch is reached or after receiving a “STOP” control frame (Switch Multilevel Stop).'''.stripMargin()
-        ],
-        [
-            id: 14,
-            size:1,
-            type: "number",
-            range: "0..2",
-            defaultValue: 0,
-            required: false,
-            readonly: false,
-            name: "Switch type",
-            description: "The parameter settings are relevant for Roller Blind Mode and Venetian Blind Mode (parameter 10 set to 0, 1, 2).\n" +
-            "0 - Momentary switches\n" +
-            "1 - Toggle switches\n" +
-            "2 - Single, momentary switch. (The switch should be connected to S1 terminal)"
-        ],
-        [
-            id: 18,
-            size:1,
-            type: "number",
-            range: "0..255",
-            defaultValue: 0,
-            required: false,
-            readonly: false,
-            name: "Motor operation detection.",
-            description:
-            '''|Power threshold to be interpreted as reaching a limit switch.
-               |Available settings: 0 - 255 (1-255 W)
-               |The value of 0 means reaching a limit switch will not be detected
-               |Default setting: 10 (10W).'''.stripMargin()
-        ],
-        [
-            id: 22,
-            size:2,
+               |Default setting: 150 (1,5 s)'''.stripMargin(),
             type: "number",
             range: "0..65535",
             defaultValue: 0,
             required: false,
             readonly: false,
+            size:2,
+        ],
+        [
+            id: 13,
+            name: "Set slats back to previous position",
+            description:
+            '''|In Venetian Blind Mode (parameter 10 set to 2) the parameter influences slats positioning in various situations. In any other operating mode the parameter value is irrelevant.
+               |0 - Slats return to previously set position only in case of the main controller operation
+               |1 - Slats return to previously set position in case of the main controller operation, momentary switch operation, or when the limit switch is reached.
+               |2 - Slats return to previously set position in case of the main controller operation, momentary switch operation, when the limit switch is reached or after receiving a “STOP” control frame (Switch Multilevel Stop).'''.stripMargin(),
+            type: "number",
+            range: "0..2",
+            defaultValue: 0,
+            required: false,
+            readonly: false,
+            size:1,
+        ],
+        [
+            id: 14,
+            name: "Switch type",
+            description:
+            '''|The parameter settings are relevant for Roller Blind Mode and Venetian Blind Mode (parameter 10 set to 0, 1, 2).
+               |0 - Momentary switches
+               |1 - Toggle switches
+               |2 - Single, momentary switch. (The switch should be connected to S1 terminal)'''.stripMargin(),
+            type: "number",
+            range: "0..2",
+            defaultValue: 0,
+            required: false,
+            readonly: false,
+            size:1,
+        ],
+        [
+            id: 17,
+            name: "Turning off relays after reaching a limit switch",
+            description:
+            '''|In Roller Blind Mode and Venetian Blind Mode - turning off relays after reaching a limit switch
+               |In Gate Mode (parameter 10 set to 3 or 4) the parameter determines a time period after which a gate will start closing after a S2 contact has been disconnected. In this mode, time to turn off the Roller Shutter relays after reaching a limit switch is set to 3 seconds and cannot be modified.
+               |Available settings:
+               |0 – gate will not close automatically
+               |1-255 (0.1-25.5s, 0.1 step)'''.stripMargin(),
+            type: "number",
+            range: "0..255",
+            defaultValue: 0,
+            required: false,
+            readonly: false,
+            size:1,
+        ],
+        [
+            id: 18,
+            name: "Motor operation detection",
+            description:
+            '''|Power threshold to be interpreted as reaching a limit switch.
+               |Available settings: 0 - 255 (1-255 W)
+               |The value of 0 means reaching a limit switch will not be detected
+               |Default setting: 10 (10W).'''.stripMargin(),
+            type: "number",
+            range: "0..255",
+            defaultValue: 0,
+            required: false,
+            readonly: false,
+            size:1,
+        ],
+        [
+            id: 22,
             name: "Motor operation time.",
             description:
             '''|Time period for the motor to continue operation.
                |Available settings: 0 – 65535 (0 – 65535s)
                |The value of 0 means the function is disabled.
-               |Default setting: 240 (240s. – 4 minutes)'''.stripMargin()
-        ],
-        [
-            id: 30,
-            size:1,
+               |Default setting: 240 (240s. – 4 minutes)'''.stripMargin(),
             type: "number",
-            range: "0..2",
+            range: "0..65535",
             defaultValue: 0,
             required: false,
             readonly: false,
+            size:2,
+        ],
+        [
+            id: 30,
             name: "Response to general alarm",
             description:
             '''|0 - No reaction.
                |1 - Open blind.
-               |2 - Close blind.'''.stripMargin()
+               |2 - Close blind.'''.stripMargin(),
+            type: "number",
+            range: "0..2",
+            defaultValue: 2,
+            required: false,
+            readonly: false,
+            size:1,
         ],
         [
             id: 31,
-            size:1,
-            type: "number",
-            range: "0..2",
-            defaultValue: 0,
-            required: false,
-            readonly: false,
             name: "Response to flooding alarm",
             description:
             '''|0 - No reaction.
                |1 - Open blind.
-               |2 - Close blind.'''.stripMargin()
-        ],
-        [
-            id: 32,
-            size:1,
+               |2 - Close blind.'''.stripMargin(),
             type: "number",
             range: "0..2",
             defaultValue: 0,
             required: false,
             readonly: false,
+            size:1,
+        ],
+        [
+            id: 32,
             name: "Response to smoke, CO or CO2 alarm",
             description:
             '''|0 - No reaction.
                |1 - Open blind.
-               |2 - Close blind.'''.stripMargin()
+               |2 - Close blind.'''.stripMargin(),
+            type: "number",
+            range: "0..2",
+            defaultValue: 1,
+            required: false,
+            readonly: false,
+            size:1,
         ],
         [
             id: 33,
-            size:1, type: "number",
-            range: "0..2",
-            defaultValue: 0,
-            required: false,
-            readonly: false,
             name: "Response to temperature alarm",
             description:
             '''|0 - No reaction.
                |1 - Open blind.
-               |2 - Close blind.'''.stripMargin()
+               |2 - Close blind.'''.stripMargin(),
+            type: "number",
+            range: "0..2",
+            defaultValue: 1,
+            required: false,
+            readonly: false,
+            size:1,
         ],
         [
             id: 35,
-            size:1, type: "number",
-            range: "0..2",
-            defaultValue: 0,
-            required: false,
-            readonly: false,
             name: "Managing slats in response to alarm.",
             description:
             '''|0 - Do not change slats position - slats return to the last set position
-               |1 - Set slats to their extreme position'''.stripMargin()
+               |1 - Set slats to their extreme position'''.stripMargin(),
+            type: "number",
+            range: "0..2",
+            defaultValue: 1,
+            required: false,
+            readonly: false,
+            size:1,
         ],
         [
             id: 40,
-            size:1,
-            type: "number",
-            range: "0..2",
-            defaultValue: 0,
-            required: false,
-            readonly: false,
             name: "Power reports",
             description:
             '''|Power level change that will result in new power value report being sent.\
                |The parameter defines a change that needs to occur in order to trigger the report. The value is a percentage of the previous report.
                |Power report threshold available settings: 1-100 (1-100%).
-               |Value of 0 means the reports are turned off.'''.stripMargin()
-        ]
+               |Value of 0 means the reports are turned off.'''.stripMargin(),
+            type: "number",
+            range: "0..2",
+            defaultValue: 0,
+            required: false,
+            readonly: false,
+            size:1,
+        ],
+        [
+            id: 42,
+            name: "Periodic power or energy reports",
+            description:
+            '''|This parameter determines a time period between consecutive reports.
+               |Available settings:
+               |0 – periodic reports are disabled
+               |1-65534 (1-65534s)'''.stripMargin(),
+            type: "number",
+            range: "0..65534",
+            defaultValue: 3600,
+            required: false,
+            readonly: false,
+            size:2,
+        ],
+        [
+            id: 42,
+            name: "Energy reports",
+            description:
+            '''|Energy level change which will result in new energy value report being sent. The parameter defines a change that needs to occur in order to trigger the report.
+               |Available settings:
+               |0 – reports are disabled
+               |1-254 (0.01-2.54kWh)'''.stripMargin(),
+            type: "number",
+            range: "0..254",
+            defaultValue: 10,
+            required: false,
+            readonly: false,
+            size:1,
+        ],
+        [
+            id: 44,
+            name: "Energy reports",
+            description:
+            '''|The device may include power and energy used by itself in reports sent to the main controller.
+               |Available settings:
+               |0 – self-measurement inactive
+               |1 – self-measurement active
+               |Default setting: 0'''.stripMargin(),
+            type: "number",
+            range: "0..1",
+            defaultValue: 0,
+            required: false,
+            readonly: false,
+            size:1,
+        ],
     ]
 }
