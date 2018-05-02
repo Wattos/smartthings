@@ -111,7 +111,7 @@ metadata {
             getFibaroDeviceParameters().findAll( { !it.readonly } ).each {
                 // Exclude readonly parameters.
 
-                def lb = (it.description.length() > 0) ? "\n" : ""
+                def lb = (it.description.length() > 0) ? "\n\n" : ""
 
                 switch(it.type) {
                     case "number":
@@ -127,7 +127,7 @@ metadata {
                     case "enum":
                         input (
                         name: "configParam${it.id}",
-                        title: "#${it.id}: ${it.name}: \n ${it.description} \n Default Value: " + it.values.find({ v-> v.value == it.defaultValue }).name,
+                        title: "#${it.id}: ${it.name}: \n" + it.description + lb + "Default Value: " + it.values.find({ v-> v.value == it.defaultValue }).name,
                         type: "enum",
                         options: it.values.collect({it.name}),
                         required: it.required
@@ -430,13 +430,15 @@ private getFibaroDeviceParameters() {
             name: "Time of full turn of the slat",
             description:
             '''|In Venetian Blind mode (parameter 10 set to 2) the parameter determines time of full turn of the slats
+               |
                |In Gate Mode (parameter 10 set to 3 or 4) the parameter defines the COUNTDOWN time, i.e. the time period after which an open gate starts closing. In any other operating mode the parameter value is irrelevant.
+               |
                |Value of 0 means the gate will not close automatically
-               |Available settings: 0-65535 (0 - 655,35s)
-               |Default setting: 150 (1,5 s)'''.stripMargin(),
+               |
+               |Available settings: 0-65535 (0 - 655,35s)'''.stripMargin(),
             type: "number",
             range: "0..65535",
-            defaultValue: 0,
+            defaultValue: 150,
             required: false,
             readonly: false,
             size:2,
@@ -478,7 +480,9 @@ private getFibaroDeviceParameters() {
             name: "Turning off relays after reaching a limit switch",
             description:
             '''|In Roller Blind Mode and Venetian Blind Mode - turning off relays after reaching a limit switch
+               |
                |In Gate Mode (parameter 10 set to 3 or 4) the parameter determines a time period after which a gate will start closing after a S2 contact has been disconnected. In this mode, time to turn off the Roller Shutter relays after reaching a limit switch is set to 3 seconds and cannot be modified.
+               |
                |Available settings:
                |0 – gate will not close automatically
                |1-255 (0.1-25.5s, 0.1 step)'''.stripMargin(),
@@ -494,12 +498,12 @@ private getFibaroDeviceParameters() {
             name: "Motor operation detection",
             description:
             '''|Power threshold to be interpreted as reaching a limit switch.
+               |
                |Available settings: 0 - 255 (1-255 W)
-               |The value of 0 means reaching a limit switch will not be detected
-               |Default setting: 10 (10W).'''.stripMargin(),
+               |The value of 0 means reaching a limit switch will not be detected'''.stripMargin(),
             type: "number",
             range: "0..255",
-            defaultValue: 0,
+            defaultValue: 10,
             required: false,
             readonly: false,
             size:1,
@@ -509,12 +513,13 @@ private getFibaroDeviceParameters() {
             name: "Motor operation time.",
             description:
             '''|Time period for the motor to continue operation.
+               |
                |Available settings: 0 – 65535 (0 – 65535s)
-               |The value of 0 means the function is disabled.
-               |Default setting: 240 (240s. – 4 minutes)'''.stripMargin(),
+               |
+               |The value of 0 means the function is disabled.'''.stripMargin(),
             type: "number",
             range: "0..65535",
-            defaultValue: 0,
+            defaultValue: 240,
             required: false,
             readonly: false,
             size:2,
@@ -597,8 +602,10 @@ private getFibaroDeviceParameters() {
             id: 40,
             name: "Power reports",
             description:
-            '''|Power level change that will result in new power value report being sent.\
+            '''|Power level change that will result in new power value report being sent.
+               |
                |The parameter defines a change that needs to occur in order to trigger the report. The value is a percentage of the previous report.
+               |
                |Power report threshold available settings: 1-100 (1-100%).
                |Value of 0 means the reports are turned off.'''.stripMargin(),
             type: "number",
@@ -613,6 +620,7 @@ private getFibaroDeviceParameters() {
             name: "Periodic power or energy reports",
             description:
             '''|This parameter determines a time period between consecutive reports.
+               |
                |Available settings:
                |0 – periodic reports are disabled
                |1-65534 (1-65534s)'''.stripMargin(),
@@ -628,6 +636,7 @@ private getFibaroDeviceParameters() {
             name: "Energy reports",
             description:
             '''|Energy level change which will result in new energy value report being sent. The parameter defines a change that needs to occur in order to trigger the report.
+               |
                |Available settings:
                |0 – reports are disabled
                |1-254 (0.01-2.54kWh)'''.stripMargin(),
