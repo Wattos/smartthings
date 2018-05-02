@@ -127,9 +127,9 @@ metadata {
                     case "enum":
                         input (
                         name: "configParam${it.id}",
-                        title: "#${it.id}: ${it.name}: \n ${it.description} \n Default Value: " + it.values.findResult({ v-> v.value == it.defaultValue }).name,
+                        title: "#${it.id}: ${it.name}: \n ${it.description} \n Default Value: " + it.values.find({ v-> v.value == it.defaultValue }).name,
                         type: "enum",
-                        options: it.values.collect(it.name),
+                        options: it.values.collect({it.name}),
                         required: it.required
                         )
                         break
@@ -366,11 +366,11 @@ def sync() {
         def value = null
 
         if (it.type == "number") {
-            value = settings."configParam${it.id}".toInteger()
+            value = settings."configParam${it.id}"?.toInteger()
         }
 
         if (it.type == "enum") {
-            value = it.values.findResult( { v -> v.name == settings."configParam${it.id}" }).value
+            value = it.values.find( { v -> v.name == settings."configParam${it.id}" })?.value
         }
 
         if (value == null) {
